@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Thread Shear Strength Calculator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #2c3e50;
+    }
+
+    img {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+      margin-top: 15px;
+      width: 100%;
+    }
+
+    .output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-left: 4px solid #3498db;
+      border-radius: 6px;
+    }
+
+    .output p {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Thread Shear Strength Calculator</h2>
+    <img src="image/image.png" alt="Thread Diagram">
+
+    <label>Outer Diameter (Do Ø) (mm):</label>
+    <input type="number" id="metricSize" step="0.01" value="10">
+
+    <label>Pitch (mm):</label>
+    <input type="number" id="pitch" step="0.01" value="1.5">
+
+    <label>Load (N):</label>
+    <input type="number" id="load" step="1" value="10000">
+
+    <label>Material Shear Strength (MPa):</label>
+    <input type="number" id="shearStrength" step="1" value="270">
+
+    <label>Engagement Length (mm):</label>
+    <input type="number" id="length" step="0.01" value="4">
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div class="output" id="results"></div>
+  </div>
+
+  <script>
+    function calculate() {
+      const Do = parseFloat(document.getElementById("metricSize").value);
+      const p = parseFloat(document.getElementById("pitch").value);
+      const load = parseFloat(document.getElementById("load").value);
+      const T = parseFloat(document.getElementById("shearStrength").value);
+      const L = parseFloat(document.getElementById("length").value);
+
+      if ([Do, p, load, T, L].some(isNaN)) {
+        alert("Please enter all values correctly.");
+        return;
+      }
+
+      const effectiveDia = Do - (0.649 * p);  // Effective Ø
+      const minorDia = (2 * effectiveDia) - Do;  // Minor Ø
+
+      const At = (Math.PI / 4) * Math.pow(minorDia, 2);  // Area
+      const tensileStress = load / At;
+      const fos = T / tensileStress;
+
+      let statusMsg = "", color = "";
+
+      if (fos < 1) {
+        color = "red";
+        statusMsg = "⚠ FoS < 1 — Not safe! Increase diameter or reduce load.";
+      } else if (fos >= 1 && fos < 2) {
+        color = "#e67e22";
+        statusMsg = "🟡 FoS between 1 and 2 — Marginal. Consider improving safety margin.";
+      } else {
+        color = "green";
+        statusMsg = "✅ FoS ≥ 2 — Safe design.";
+      }
+
+      document.getElementById("results").innerHTML = `
+        <p><strong>Effective Diameter (Effective Ø):</strong> ${effectiveDia.toFixed(3)} mm</p>
+        <p><strong>Minor Diameter (Minor Ø):</strong> ${minorDia.toFixed(3)} mm</p>
+        <p><strong>Outer Diameter (Do Ø):</strong> ${Do.toFixed(2)} mm</p>
+        <p><strong>Tensile Stress Area (At):</strong> ${At.toFixed(2)} mm²</p>
+        <p><strong>Tensile Stress:</strong> ${tensileStress.toFixed(2)} MPa</p>
+        <p><strong>Factor of Safety (FoS):</strong> ${fos.toFixed(2)}</p>
+        <p style="color:${color}; font-weight:bold;">${statusMsg}</p>
+      `;
+    }
+  </script>
+
+</body>
+</html>
